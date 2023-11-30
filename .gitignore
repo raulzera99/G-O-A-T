@@ -2,7 +2,8 @@
 
 # dependencies
 node_modules/
-./assets/*
+assets/*    
+.png
 C:\Users\raulp\OneDrive - ifsp.edu.br\FACUL\8° Semestre\Programação de Dispositivos Móveis\react_native_goat1\%ProgramData%\Microsoft\Windows\UUS\State
 
 # Expo
