@@ -9,11 +9,12 @@ import InitialScreen from "../screens/auth/InitialScreen";
 import LoginScreen from "../screens/auth/LoginScreen";
 import RegisterScreen from "../screens/auth/RegisterScreen";
 import RachaoScreen from "../screens/rachao/RachaoScreen";
+import AddRachaoScreen from "../screens/rachao/AddRachaoScreen";
+import PlayerRegisterScreen from "../screens/auth/PlayerRegisterScreen";
 import HistoricoScreen from "../screens/historico/HistoricoScreen";
 import FinanceiroScreen from "../screens/financeiro/FinanceiroScreen";
 import RankingScreen from "../screens/ranking/RankingScreen";
 import AjustesScreen from "../screens/ajustes/AjustesScreen";
-import AddRachaoScreen from "../screens/rachao/AddRachaoScreen";
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -150,6 +151,12 @@ const AppNavigator = (isAuthenticated) => {
           name="AddRachaoScreen"
           component={AddRachaoScreen}
           options={{ title: "Adicionar Rachão" }}
+        />
+
+        <Stack.Screen
+          name="PlayerRegisterScreen"
+          component={PlayerRegisterScreen}
+          options={{ title: "Cadastro de Jogador" }}
         />
 
         <Stack.Screen name="Login" component={LoginScreen} />

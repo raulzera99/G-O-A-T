@@ -1,16 +1,48 @@
-import React from "react";
-import { Card, Text } from "@react-native-material/core";
-import { View, StyleSheet } from "react-native";
-import { Avatar } from "@react-native-material/core";
-import { Overlay } from "react-native-elements";
+import React, { useState } from "react";
+import { Card, Text, Input, Button } from "@react-native-material/core";
+import { View, StyleSheet, Alert } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import AppBar from "../../components/common/AppBar";
 
-const PlayerRegisterScreen = () => {
-  const [visible, setVisible] = useState(false);
+const PlayerRegisterScreen = ({ navigation }) => {
+  const [player, setPlayer] = useState({
+    name: "",
+    position: "",
+    status: "",
+  });
 
-  const toggleOverlay = () => {
-    setVisible(!visible);
+  const handleInputChange = (field, value) => {
+    setPlayer({ ...player, [field]: value });
   };
+
+  const savePlayer = async () => {
+    try {
+      // Validar se todos os campos estão preenchidos
+      if (!player.name || !player.position || !player.status) {
+        Alert.alert("Erro", "Por favor, preencha todos os campos.");
+        return;
+      }
+
+      // Obter jogadores existentes do AsyncStorage
+      const existingPlayers = await AsyncStorage.getItem("players");
+      const playersArray = existingPlayers ? JSON.parse(existingPlayers) : [];
+
+      // Adicionar novo jogador ao array
+      playersArray.push(player);
+
+      // Salvar array atualizado de jogadores no AsyncStorage
+      await AsyncStorage.setItem("players", JSON.stringify(playersArray));
+
+      // Limpar os campos de entrada
+      setPlayer({ name: "", position: "", status: "" });
+
+      // Navegar para a tela anterior ou realizar outra ação
+      navigation.goBack();
+    } catch (error) {
+      console.error("Erro ao salvar jogador:", error);
+    }
+  };
+
   return (
     <>
       <AppBar
@@ -18,13 +50,30 @@ const PlayerRegisterScreen = () => {
         subtitle="Preencha os dados do jogador"
       />
       <Card style={styles.card}>
-        <Text style={styles.cardText}>{`Name: ${player.name}`}</Text>
-        <Text style={styles.cardText}>{`Position: ${player.position}`}</Text>
-        <Text style={styles.cardText}>{`Status: ${player.status}`}</Text>
+        <Input
+          label="Nome"
+          value={player.name}
+          onChangeText={(value) => handleInputChange("name", value)}
+        />
+        <Input
+          label="Posição"
+          value={player.position}
+          onChangeText={(value) => handleInputChange("position", value)}
+        />
+        <Input
+          label="Status"
+          value={player.status}
+          onChangeText={(value) => handleInputChange("status", value)}
+        />
+
+        <Button style={styles.saveButton} onPress={savePlayer} mode="contained">
+          Salvar Jogador
+        </Button>
       </Card>
     </>
   );
 };
+
 const styles = StyleSheet.create({
   card: {
     margin: 10,
@@ -33,8 +82,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     elevation: 2,
   },
-  cardText: {
-    fontSize: 16,
-    marginBottom: 5,
+  saveButton: {
+    marginTop: 20,
   },
 });
+
+export default PlayerRegisterScreen;

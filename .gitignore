@@ -33,3 +33,11 @@ yarn-error.*
 
 # typescript
 *.tsbuildinfo
+
+# misc
+/.idea
+/.expo-shared
+```
+# ignorar pasta assets
+```
+/assets/*
