@@ -61,15 +61,15 @@ const AjustesScreen = ({ navigation }) => {
         />
 
         <Button
-          title="Apagar todas as tarefas"
+          title="Apagar todos os dados"
           onPress={() =>
             Alert.alert(
-              "Apagar todas as tarefas",
-              "Tem certeza que deseja apagar todas as tarefas? Essa ação não pode ser desfeita.",
+              "Apagar dados",
+              "Tem certeza que deseja apagar todos os dados? Essa ação não pode ser desfeita.",
               [
                 {
                   text: "Cancelar",
-                  onPress: () => console.log("Apagar tarefas cancelado."),
+                  onPress: () => console.log("Apagar dados cancelado."),
                   style: "cancel",
                 },
                 { text: "Apagar", onPress: clearTasks },

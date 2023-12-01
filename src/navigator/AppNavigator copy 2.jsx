@@ -3,22 +3,61 @@ import { View, Text, StyleSheet } from "react-native";
 import { NavigationContainer, useNavigation } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+// import { createDrawerNavigator, DrawerActions } from "@react-navigation/drawer";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import InitialScreen from "../screens/auth/InitialScreen";
 import LoginScreen from "../screens/auth/LoginScreen";
 import RegisterScreen from "../screens/auth/RegisterScreen";
 import RachaoScreen from "../screens/rachao/RachaoScreen";
 import AddRachaoScreen from "../screens/rachao/AddRachaoScreen";
-import PlayerRegisterScreen from "../screens/rachao/PlayerRegisterScreen";
+import PlayerRegisterScreen from "../screens/auth/PlayerRegisterScreen";
 import HistoricoScreen from "../screens/historico/HistoricoScreen";
 import FinanceiroScreen from "../screens/financeiro/FinanceiroScreen";
 import RankingScreen from "../screens/ranking/RankingScreen";
 import AjustesScreen from "../screens/ajustes/AjustesScreen";
-import SortTeamsScreen from "../screens/rachao/SortTeamsScreen";
-import AliveMatchupScreen from "../screens/rachao/AliveMatchupScreen";
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
+// const Drawer = createDrawerNavigator();
+
+// const MainDrawer = () => (
+//   <Drawer.Navigator>
+//     <Drawer.Screen name="Rachao" component={RachaoScreen} />
+//     <Drawer.Screen name="Historico" component={HistoricoScreen} />
+//     <Drawer.Screen name="Financeiro" component={FinanceiroScreen} />
+//     <Drawer.Screen name="Ranking" component={RankingScreen} />
+//     <Drawer.Screen name="Settings" component={AjustesScreen} />
+//   </Drawer.Navigator>
+// );
+
+// const Header = () => {
+//   const [isOpen, setIsOpen] = useState(false);
+//   const navigation = useNavigation();
+
+//   const openDrawer = () => {
+//     navigation.dispatch(DrawerActions.toggleDrawer());
+//     setIsOpen(true);
+//   };
+
+//   const closeDrawer = () => {
+//     navigation.dispatch(DrawerActions.closeDrawer());
+//     setIsOpen(false);
+//   };
+
+//   return (
+//     <View style={styles.headerContainer}>
+//       {isOpen ? (
+//         <Text style={styles.icon} onPress={() => closeDrawer()}>
+//           Close
+//         </Text>
+//       ) : (
+//         <Text style={styles.icon} onPress={() => openDrawer()}>
+//           ☰
+//         </Text>
+//       )}
+//     </View>
+//   );
+// };
 
 const MainTabs = () => (
   <Tab.Navigator
@@ -93,11 +132,20 @@ const AppNavigator = (isAuthenticated) => {
           },
         }}
       >
+        {/* <Stack.Screen
+          name="MainDrawer"
+          options={{
+            headerRight: ({}) => <Header />,
+          }}
+          component={MainDrawer}
+        /> */}
+
         <Stack.Screen
           name="MainTabs"
           component={MainTabs}
           options={{ headerShown: false }}
         />
+        {/* <Stack.Screen name="MainDrawer" component={MainDrawer} /> */}
 
         <Stack.Screen
           name="AddRachaoScreen"
@@ -105,24 +153,15 @@ const AppNavigator = (isAuthenticated) => {
           options={{ title: "Adicionar Rachão" }}
         />
 
-        <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="Register" component={RegisterScreen} />
-        <Stack.Screen name="G O A T" component={InitialScreen} />
         <Stack.Screen
           name="PlayerRegisterScreen"
           component={PlayerRegisterScreen}
-          options={{ title: "Cadastro de Jogador", headerShown: false }}
+          options={{ title: "Cadastro de Jogador" }}
         />
-        <Stack.Screen
-          name="SortTeamsScreen"
-          component={SortTeamsScreen}
-          options={{ title: "Sorteio de Times", headerShown: false }}
-        />
-        <Stack.Screen
-          name="AliveMatchup"
-          component={AliveMatchupScreen}
-          options={{ title: "Ao Vivo", headerShown: false }}
-        />
+
+        <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="Register" component={RegisterScreen} />
+        <Stack.Screen name="G O A T" component={InitialScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

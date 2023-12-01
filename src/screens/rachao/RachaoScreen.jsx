@@ -23,91 +23,100 @@ const RachaoScreen = ({ navigation }) => {
   const [selectedParticipantIndex, setSelectedParticipantIndex] =
     useState(null);
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        // Get login data from AsyncStorage
-        const userFullName = await AsyncStorage.getItem("fullName");
-        const userPosition = await AsyncStorage.getItem("position");
-        const userPoints = await AsyncStorage.getItem("points");
-        const userAssists = await AsyncStorage.getItem("assists");
-        const userRebounds = await AsyncStorage.getItem("rebounds");
+  const loadData = async () => {
+    try {
+      // Get login data from AsyncStorage
+      const userFullName = await AsyncStorage.getItem("fullName");
+      const userPosition = await AsyncStorage.getItem("position");
+      const userPoints = await AsyncStorage.getItem("points");
+      const userAssists = await AsyncStorage.getItem("assists");
+      const userRebounds = await AsyncStorage.getItem("rebounds");
 
-        // Load mock data for demonstration
-        const mockParticipants = [
-          {
-            id: "1",
-            index: 0,
-            name: "Lebron James",
-            position: "Small Forward; Power Forward",
-            points: "28.5 PPG",
-            assists: "8.5 APG",
-            rebounds: "7.4 RPG",
-            blocks: "1.2 BPG",
-            status: "Em Dúvida",
-            avatar: require("../../../assets/lebron.png"),
-          },
-          {
-            id: "2",
-            index: 1,
-            name: "Stephen Curry",
-            position: "Point Guard",
-            points: "32.1 PPG",
-            assists: "6.4 APG",
-            rebounds: "5.5 RPG",
-            blocks: "0.3 BPG",
-            status: "Em Dúvida",
-            avatar: require("../../../assets/curry.png"), // Corrigir a leitura da propriedade avatar
-          },
-          {
-            id: "3",
-            index: 2,
-            name: "Kevin Durant",
-            position: "Small Forward; Power Forward",
-            points: "27.0 PPG",
-            assists: "5.9 APG",
-            rebounds: "7.1 RPG",
-            blocks: "1.1 BPG",
-            status: "Em Dúvida",
-            avatar: require("../../../assets/durant.png"),
-          },
-          {
-            id: "4",
-            index: 3,
-            name: { userFullName },
-            position: { userPosition },
-            status: "Em Dúvida",
-            avatar: require("../../../assets/user.png"),
-          },
-          // Add more players as needed
-        ];
-        console.log("Mock Participants:", mockParticipants);
+      // Load mock data for demonstration
+      const mockParticipants = [
+        {
+          id: "1",
+          index: 0,
+          name: "Lebron James",
+          position: "Small Forward; Power Forward",
+          points: "28.5 PPG",
+          assists: "8.5 APG",
+          rebounds: "7.4 RPG",
+          blocks: "1.2 BPG",
+          status: "Em Dúvida",
+          avatar: require("../../../assets/lebron.png"),
+        },
+        {
+          id: "2",
+          index: 1,
+          name: "Stephen Curry",
+          position: "Point Guard",
+          points: "32.1 PPG",
+          assists: "6.4 APG",
+          rebounds: "5.5 RPG",
+          blocks: "0.3 BPG",
+          status: "Em Dúvida",
+          avatar: require("../../../assets/curry.png"), // Corrigir a leitura da propriedade avatar
+        },
+        {
+          id: "3",
+          index: 2,
+          name: "Kevin Durant",
+          position: "Small Forward; Power Forward",
+          points: "27.0 PPG",
+          assists: "5.9 APG",
+          rebounds: "7.1 RPG",
+          blocks: "1.1 BPG",
+          status: "Em Dúvida",
+          avatar: require("../../../assets/durant.png"),
+        },
+        {
+          id: "4",
+          index: 3,
+          name: { userFullName },
+          position: { userPosition },
+          status: "Em Dúvida",
+          avatar: require("../../../assets/user.png"),
+        },
+        // Add more players as needed
+      ];
+      console.log("Mock Participants:", mockParticipants);
 
-        // Set mock data in state
-        setNextRachao({ date: "2023-11-15", time: "18:00", location: "Court" });
-        setParticipants(mockParticipants);
-        updateStatusLists(mockParticipants);
+      // Set mock data in state
+      setNextRachao({ date: "2023-11-15", time: "18:00", location: "Court" });
+      setParticipants(mockParticipants);
+      updateStatusLists(mockParticipants);
 
-        // Retrieve saved participant statuses
-        const participantsStatusData = await AsyncStorage.getItem(
-          "participants"
-        );
+      // Retrieve saved participant statuses
+      const participantsStatusData = await AsyncStorage.getItem("participants");
 
-        console.log("Participants Status Data:", participantsStatusData);
+      console.log("Participants Status Data:", participantsStatusData);
 
-        if (participantsStatusData) {
-          const parsedStatusData = JSON.parse(participantsStatusData);
-          console.log("Parsed Status Data:", parsedStatusData);
-          setConfirmedPlayers(parsedStatusData.confirmed || []);
-          setAbsentPlayers(parsedStatusData.absent || []);
-          setUndecidedPlayers(parsedStatusData.undecided || []);
-        }
-      } catch (error) {
-        console.error("Error loading data:", error);
+      if (participantsStatusData) {
+        const parsedStatusData = JSON.parse(participantsStatusData);
+        console.log("Parsed Status Data:", parsedStatusData);
+        setConfirmedPlayers(parsedStatusData.confirmed || []);
+        setAbsentPlayers(parsedStatusData.absent || []);
+        setUndecidedPlayers(parsedStatusData.undecided || []);
       }
-    };
+    } catch (error) {
+      console.error("Error loading data:", error);
+    }
+  };
 
+  useEffect(() => {
+    // Load data when the screen is focused
+    const focusListener = navigation.addListener("focus", () => {
+      loadData();
+    });
+
+    // Load data when the screen is mounted
     loadData();
+
+    return () => {
+      // Remove the event listener to prevent multiple calls
+      focusListener();
+    };
   }, []);
 
   const handleStatusUpdate = async (participantIndex, status) => {
@@ -218,6 +227,12 @@ const RachaoScreen = ({ navigation }) => {
   const handleAddPlayerTemporary = () => {
     // Redirecionar para a tela de adicionar jogador
     navigation.navigate("PlayerRegisterScreen");
+  };
+
+  // Function to handle the sort teams button click
+  const handleSortTeams = () => {
+    // Redirecionar para a tela de sorteio de times
+    navigation.navigate("SortTeamsScreen");
   };
 
   const renderSectionHeader = ({ section: { title } }) => (
@@ -373,7 +388,7 @@ const RachaoScreen = ({ navigation }) => {
             {/* Botão Sortear Times */}
             <TouchableOpacity
               style={[styles.button, styles.buttonSortear]}
-              onPress={handleAddPlayerTemporary}
+              onPress={handleSortTeams}
             >
               <Text style={styles.buttonText}>Sortear times</Text>
             </TouchableOpacity>
