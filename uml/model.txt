@@ -1,0 +1,118 @@
+/*
+GOAT APP
+Aplicativo para gerenciar e organizar os rachões de basquete da galera
+Onde é possível criar, editar, buscar e excluir grupos de rachão
+Em cada grupo é possível criar, editar, gerenciar ao vivo e excluir partidas
+Em cada partida é possível criar, editar, gerenciar ao vivo, sortear e excluir jogadores
+Em cada partida é possível controlar o tempo de jogo, o placar e as estatísticas dos jogadores
+Em cada partida é possível gerar um relatório com as estatísticas dos jogadores
+Em cada partida é possível gerenciar os times, sortear os times e gerar um relatório com os times
+Em cada jogador é possível criar, editar e excluir estatísticas ao vivo
+Em cada jogador é possível gerar um relatório com as estatísticas do jogador individualmente
+Em cada jogador é possível gerar um relatório com as estatísticas do jogador em todas as partidas
+
+O bottom tab navigator deve conter as seguintes telas:
+- Home - Marcar rachão em determinado grupo
+- Histórico - Ver histórico de partidas de determinado grupo
+- Grupos - Ver grupos de rachão
+- Ranking - Ver ranking de jogadores de determinado grupo
+- Ajustes - Ver ajustes do aplicativo e da conta de usuário
+
+*/
+
+
+
+Entidades Principais:
+
+    Usuário (User):
+        Atributos: userID, username, email, avatarURL, etc.
+        Relacionamentos: Pode ter várias partidas registradas. (Um para muitos)
+
+    Partida (Match):
+        Atributos: matchID, date, location, winner, etc.
+        Relacionamentos: Pertence a um usuário (criador da partida), pode ter vários jogadores. (Muitos para muitos)
+
+    Jogador (Player):
+        Atributos: playerID, name, points, assists, rebounds, blocks, steals, etc.
+        Relacionamentos: Pertence a muitas partidas, pode estar associado a vários usuários (quem o convidou). (Muitos para muitos)
+
+    Grupo (Group):
+        Atributos: groupID, name, description, etc.
+        Relacionamentos: Pertence a um usuário (criador do grupo), pode ter várias partidas registradas. (Muitos para muitos)
+
+    Estatísticas (Stats):
+        Atributos: statsID, points, assists, rebounds, blocks, steals, etc.
+        Relacionamentos: Pertence a um jogador, pode ter várias partidas registradas. (Muitos para muitos)
+
+    Time (Team):
+        Atributos: teamID, name, description, etc.
+        Relacionamentos: Pertence a uma partida, pode ter vários jogadores. (Muitos para muitos)
+
+    
+
+Diagrama de classes:
+    
+        User:
+            - userID: String
+            - username: String
+            - email: String
+            - avatarURL: String
+            - matches: Match[]
+            - groups: Group[]
+            - stats: Stats[]
+            + createMatch()
+            + createGroup()
+            + createStats()
+    
+        Match:
+            - matchID: String
+            - date: Date
+            - location: String
+            - result: String
+            - players: Player[]
+            - user: User
+            + createPlayer()
+            + createTeam()
+            + createStats()
+            + createGroup()
+    
+        Player:
+            - playerID: String
+            - name: String
+            - points: Number
+            - assists: Number
+            - rebounds: Number
+            - blocks: Number
+            - steals: Number
+            - stats: Stats[]
+            - matches: Match[]
+            - users: User[]
+            + createStats()
+    
+        Group:
+            - groupID: String
+            - name: String
+            - description: String
+            - matches: Match[]
+            - user: User
+            + createMatch()
+    
+        Stats:
+            - statsID: String
+            - points: Number
+            - assists: Number
+            - rebounds: Number
+            - blocks: Number
+            - steals: Number
+            - player: Player
+            - matches: Match[]
+            + createPlayer()
+    
+        Team:
+            - teamID: String
+            - name: String
+            - description: String
+            - players: Player[]
+            - match: Match
+            + createPlayer()
+ 
