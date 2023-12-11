@@ -2,17 +2,38 @@ import React from "react";
 import { View, Alert } from "react-native";
 import { Button } from "@react-native-material/core";
 import Icon from "react-native-vector-icons/FontAwesome";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import AppBar from "../../components/common/AppBar";
+import firebase from "firebase/app";
+import "firebase/auth";
+import { getAuth } from "firebase/auth";
+import User from "../../models/User";
 
 const AjustesScreen = ({ navigation }) => {
+  const handleLogout = () => {
+    // Realizar logout no Firebase
+    getAuth().signOut();
+
+    // Redirecionar para a tela inicial
+    navigation.reset({
+      index: 0,
+      routes: [{ name: "G O A T" }],
+    });
+  };
+
   const clearAllDataAndReset = async () => {
     try {
-      await AsyncStorage.clear();
+      // Limpar dados locais (se necessário)
+      // ...
+
+      // Realizar logout no Firebase
+      firebase.auth().signOut();
+
+      // Redirecionar para a tela inicial
       navigation.reset({
         index: 0,
         routes: [{ name: "G O A T" }],
       });
+
       Alert.alert(
         "Dados Apagados e Aplicação Resetada",
         "Todos os dados locais foram apagados e a aplicação foi resetada com sucesso.",
@@ -25,12 +46,17 @@ const AjustesScreen = ({ navigation }) => {
 
   const clearTasks = async () => {
     try {
-      await AsyncStorage.removeItem("tasks");
+      // Limpar tarefas no Firebase Realtime Database
+      const userId = firebase.auth().currentUser.uid;
+      await firebase.database().ref(`users/${userId}/tasks`).remove();
+
       Alert.alert(
         "Tarefas Apagadas",
         "Todas as tarefas foram apagadas com sucesso.",
         [{ text: "OK", onPress: () => console.log("Alerta fechado.") }]
       );
+
+      // Redirecionar para a tela inicial
       navigation.reset({
         index: 0,
         routes: [{ name: "G O A T" }],
@@ -46,30 +72,25 @@ const AjustesScreen = ({ navigation }) => {
         title="Ajustes"
         subtitle="Configurações de usuário e do grupo"
         centerSubtitle={true}
-      ></AppBar>
+      />
       <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
         <Button
           title="Logout"
-          onPress={() =>
-            navigation.reset({
-              index: 0,
-              routes: [{ name: "G O A T" }],
-            })
-          }
+          onPress={handleLogout}
           leading={<Icon name="sign-out" size={25} color="#FFF" />}
           style={{ marginBottom: 20 }}
         />
 
         <Button
-          title="Apagar todos os dados"
+          title="Apagar todas as tarefas"
           onPress={() =>
             Alert.alert(
-              "Apagar dados",
-              "Tem certeza que deseja apagar todos os dados? Essa ação não pode ser desfeita.",
+              "Apagar tarefas",
+              "Tem certeza que deseja apagar todas as tarefas? Essa ação não pode ser desfeita.",
               [
                 {
                   text: "Cancelar",
-                  onPress: () => console.log("Apagar dados cancelado."),
+                  onPress: () => console.log("Apagar tarefas cancelado."),
                   style: "cancel",
                 },
                 { text: "Apagar", onPress: clearTasks },

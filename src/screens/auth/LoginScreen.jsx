@@ -1,7 +1,11 @@
 import React, { useState } from "react";
 import { View, StyleSheet } from "react-native";
 import { TextInput, Button, Text } from "@react-native-material/core";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+
+import "firebase/auth";
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../../services/firebaseConfig";
+import firebase from "firebase/app";
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState("");
@@ -9,22 +13,41 @@ const LoginScreen = ({ navigation }) => {
 
   const handleLogin = async () => {
     try {
-      const storedEmail = await AsyncStorage.getItem("email");
-      const storedPassword = await AsyncStorage.getItem("password");
-
-      if (email === storedEmail && password === storedPassword) {
-        alert("Login bem-sucedido!");
-        // Reset da navegação para a HomeScreen após login bem-sucedido
-        // navigation.reset({
-        //   index: 0,
-        //   routes: [{ name: 'Login' }],
-        // });
-        navigation.navigate("MainTabs");
-      } else {
-        alert("Credenciais inválidas. Tente novamente.");
+      // Validate that email and password are not empty
+      if (!email || !password) {
+        alert("Por favor, preencha todos os campos.");
+        return;
       }
+
+      // Authentication with Firebase
+      await signInWithEmailAndPassword(getAuth(), email, password);
+
+      // // Verificar se o usuário está na tabela users do Firebase Realtime Database
+      // const database = getDatabase();
+      // const usersRef = database.ref("users");
+      // const snapshot = await usersRef
+      //   .orderByChild("email")
+      //   .equalTo(email)
+      //   .once("value");
+
+      // if (!snapshot.exists()) {
+      //   // Se não existir, criar um novo usuário na tabela users
+      //   const userId = auth().currentUser.uid;
+      //   const fullName = auth().currentUser.fullName;
+      //   const nickName = auth().currentUser.nickname;
+      //   const newUser = {
+      //     fullName,
+      //     nickName,
+      //     email,
+      //   };
+      //   await database.ref(`users/${userId}`).set(newUser);
+      // }
+
+      alert("Login bem-sucedido!");
+      navigation.navigate("MainTabs");
     } catch (error) {
       console.error("Erro ao fazer login: ", error);
+      alert("Credenciais inválidas. Tente novamente.");
     }
   };
 

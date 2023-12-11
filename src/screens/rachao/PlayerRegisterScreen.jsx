@@ -5,7 +5,7 @@ import { Card } from "react-native-elements";
 import RNPickerSelect from "react-native-picker-select";
 import StarRating from "react-native-star-rating";
 
-import AsyncStorage from "@react-native-async-storage/async-storage";
+// import AsyncStorage from "@react-native-async-storage/async-storage";
 import AppBar from "../../components/common/AppBar";
 
 const PlayerRegisterScreen = ({ navigation }) => {

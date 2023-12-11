@@ -21,8 +21,10 @@ const AddRachaoScreen = () => {
   };
 
   const handleSubmit = () => {
-    // Salvar dados no AsyncStorage
-    // TODO - Salvar dados no AsyncStorage
+    // Salvar rachão no Firebase Realtime Database
+
+    //TODO
+
     // Redirecionar para a tela de rachão
     alert("Rachão adicionado com sucesso!");
   };

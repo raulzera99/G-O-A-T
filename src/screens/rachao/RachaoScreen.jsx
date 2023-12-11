@@ -12,7 +12,25 @@ import { HStack, IconButton, Button } from "@react-native-material/core";
 import Icon from "@expo/vector-icons/MaterialCommunityIcons";
 import AppBar from "../../components/common/AppBar";
 import PlayersCard from "../../../src/components/PlayersCard";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { auth } from "../../services/firebaseConfig";
+import {
+  getDatabase,
+  ref,
+  set,
+  get,
+  orderByChild,
+  equalTo,
+  once,
+  exists,
+  onValue,
+  query,
+} from "firebase/database";
+import { getAuth } from "firebase/auth";
+import { getFirestore, collection, addDoc, getDocs } from "firebase/firestore";
+
+// import AsyncStorage from "@react-native-async-storage/async-storage";
+
+// import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const RachaoScreen = ({ navigation }) => {
   const [nextRachao, setNextRachao] = useState(null);
@@ -22,15 +40,57 @@ const RachaoScreen = ({ navigation }) => {
   const [undecidedPlayers, setUndecidedPlayers] = useState([]);
   const [selectedParticipantIndex, setSelectedParticipantIndex] =
     useState(null);
+  const [hasGroups, setHasGroups] = useState(false);
 
   const loadData = async () => {
     try {
-      // Get login data from AsyncStorage
-      const userFullName = await AsyncStorage.getItem("fullName");
-      const userPosition = await AsyncStorage.getItem("position");
-      const userPoints = await AsyncStorage.getItem("points");
-      const userAssists = await AsyncStorage.getItem("assists");
-      const userRebounds = await AsyncStorage.getItem("rebounds");
+      // // Get login data from AsyncStorage
+      // const userFullName = await AsyncStorage.getItem("fullName");
+      // const userPosition = await AsyncStorage.getItem("position");
+      // const userPoints = await AsyncStorage.getItem("points");
+      // const userAssists = await AsyncStorage.getItem("assists");
+      // const userRebounds = await AsyncStorage.getItem("rebounds");
+
+      // Get login data from Firebase
+      const userFullName = auth.userFullName;
+      const userPosition = auth.userPosition;
+      const userPoints = auth.userPoints;
+      const userAssists = auth.userAssists;
+      const userRebounds = auth.userRebounds;
+
+      const database = getDatabase();
+
+      // // Verify next rachao on Firebase
+      // const nextRachaoRef = ref(database, "nextRachao");
+      // nextRachaoRef.on("value", (snapshot) => {
+      //   const data = snapshot.val();
+      //   console.log("Next Rachao Data:", data);
+      //   setNextRachao(data);
+      // });
+
+      // // Verify participants on Firebase
+      // const participantsRef = getDatabase().ref("participants");
+      // participantsRef.on("value", (snapshot) => {
+      //   const data = snapshot.val();
+      //   console.log("Participants Data:", data);
+      //   setParticipants(data);
+      // });
+
+      // // Verify confirmed players on Firebase
+      // const confirmedPlayersRef = getDatabase().ref("confirmedPlayers");
+      // confirmedPlayersRef.on("value", (snapshot) => {
+      //   const data = snapshot.val();
+      //   console.log("Confirmed Players Data:", data);
+      //   setConfirmedPlayers(data);
+      // });
+
+      // // Verify absent players on Firebase
+      // const absentPlayersRef = getDatabase().ref("absentPlayers");
+      // absentPlayersRef.on("value", (snapshot) => {
+      //   const data = snapshot.val();
+      //   console.log("Absent Players Data:", data);
+      //   setAbsentPlayers(data);
+      // });
 
       // Load mock data for demonstration
       const mockParticipants = [
@@ -83,22 +143,22 @@ const RachaoScreen = ({ navigation }) => {
       console.log("Mock Participants:", mockParticipants);
 
       // Set mock data in state
-      setNextRachao({ date: "2023-11-15", time: "18:00", location: "Court" });
-      setParticipants(mockParticipants);
-      updateStatusLists(mockParticipants);
+      // setNextRachao({ date: "2023-11-15", time: "18:00", location: "Court" });
+      // setParticipants(mockParticipants);
+      // updateStatusLists(mockParticipants);
 
       // Retrieve saved participant statuses
-      const participantsStatusData = await AsyncStorage.getItem("participants");
+      // const participantsStatusData = await AsyncStorage.getItem("participants");
 
-      console.log("Participants Status Data:", participantsStatusData);
+      // console.log("Participants Status Data:", participantsStatusData);
 
-      if (participantsStatusData) {
-        const parsedStatusData = JSON.parse(participantsStatusData);
-        console.log("Parsed Status Data:", parsedStatusData);
-        setConfirmedPlayers(parsedStatusData.confirmed || []);
-        setAbsentPlayers(parsedStatusData.absent || []);
-        setUndecidedPlayers(parsedStatusData.undecided || []);
-      }
+      // if (participantsStatusData) {
+      //   const parsedStatusData = JSON.parse(participantsStatusData);
+      //   console.log("Parsed Status Data:", parsedStatusData);
+      //   setConfirmedPlayers(parsedStatusData.confirmed || []);
+      //   setAbsentPlayers(parsedStatusData.absent || []);
+      //   setUndecidedPlayers(parsedStatusData.undecided || []);
+      // }
     } catch (error) {
       console.error("Error loading data:", error);
     }
@@ -108,12 +168,25 @@ const RachaoScreen = ({ navigation }) => {
     // Load data when the screen is focused
     const focusListener = navigation.addListener("focus", () => {
       loadData();
+      checkUserGroups();
     });
 
     // Load data when the screen is mounted
     loadData();
 
+    const checkUserGroups = async () => {
+      try {
+        // const user = getAuth().currentUser;
+
+        const userHasGroups = await userHasAnyGroup(auth.currentUser.uid);
+        setHasGroups(userHasGroups);
+      } catch (error) {
+        console.error("Error checking user groups:", error);
+      }
+    };
+
     return () => {
+      checkUserGroups();
       // Remove the event listener to prevent multiple calls
       focusListener();
     };
@@ -169,7 +242,7 @@ const RachaoScreen = ({ navigation }) => {
         undecided,
       };
       console.log("Status Data Saving:", statusData);
-      AsyncStorage.setItem("participants", JSON.stringify(statusData));
+      // AsyncStorage.setItem("participants", JSON.stringify(statusData));
     } catch (error) {
       console.error("Error saving status data:", error);
     }
@@ -241,78 +314,6 @@ const RachaoScreen = ({ navigation }) => {
     </View>
   );
 
-  const renderPlayerItem1 = ({ item, index, section }) => (
-    <View key={index}>
-      <Text style={styles.participantName}>{item.name}</Text>
-      <TouchableOpacity
-        style={[styles.button, styles.buttonColar]}
-        onPress={() => handleStatusUpdate(index, "Confirmed")}
-      >
-        <Text style={styles.buttonText}>Confirmar</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={[styles.button, styles.buttonDuvida]}
-        onPress={() => handleStatusUpdate(index, "Absent")}
-      >
-        <Text style={styles.buttonText}>Ausente</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={[styles.button, styles.buttonNaoColar]}
-        onPress={() => {
-          setSelectedParticipantIndex(index);
-          // Handle opening a modal or other UI for confirmation
-          // This can be customized based on your UI library or implementation
-          // For demonstration, I'm using an alert
-          Alert.alert(
-            "Confirm Attendance",
-            `Do you confirm attendance for ${item.name}?`,
-            [
-              {
-                text: "Cancel",
-                style: "cancel",
-              },
-              {
-                text: "Confirm",
-                onPress: () => handleStatusUpdate(index, "Confirmed"),
-              },
-            ]
-          );
-        }}
-      >
-        <Text style={styles.buttonText}>Em Dúvida</Text>
-      </TouchableOpacity>
-    </View>
-  );
-
-  const renderPlayerItem2 = ({ item }) => (
-    <PlayersCard
-      player={item}
-      onDetails={() => handlePlayerDetails(item)}
-      onConfirm={() => handleConfirmAttendance(item)}
-    />
-    // <Button style={styles.button} onPress={() => handlePlayerDetails(item)}>
-    //   <Text style={styles.buttonText}>{item.name}</Text>
-    // </Button>
-
-    // <Card style={styles.card}>
-    //   <TouchableOpacity
-    //     style={styles.buttonPlayer}
-    //     onPress={() => handlePlayerDetails(item)}
-    //   >
-    //     <Text style={styles.buttonText}>{item.name}</Text>
-    //   </TouchableOpacity>
-
-    //   <TouchableOpacity
-    //     style={styles.buttonConfirm}
-    //     onPress={() => handleConfirmAttendance(item)}
-    //   >
-    //     <Text style={styles.buttonText}>Confirmar</Text>
-    //   </TouchableOpacity>
-    // </Card>
-  );
-
   const renderPlayerItem = ({ item, index, section }) => {
     console.log("Rendering player item:", item);
     return (
@@ -348,12 +349,167 @@ const RachaoScreen = ({ navigation }) => {
     { title: "Em Dúvida", data: undecidedPlayers },
   ];
 
+  // const userHasAnyGroup = async (userId) => {
+  //   try {
+  //     const db = getDatabase();
+  //     const playersRef = ref(db, "players/");
+
+  //     // Search the player with the column "user_id" equal to the current user id
+  //     onValue(playersRef, (snapshot) => {
+  //       const result = false;
+  //       const players = snapshot.val();
+  //       for (let id in players) {
+  //         if (players[id].user_id.includes(userId)) {
+  //           console.log("Player found for the current user.", players[id]);
+  //           const playerData = players[id];
+  //           return true;
+  //         }
+  //       }
+
+  //       if (!result) {
+  //         console.log("Player not found for the current user.");
+  //       }
+  //     });
+
+  //     const playerGroupRef = ref(db, "players/");
+
+  //     // Search the players with the column "group_id" equal to the current group id
+  //     onValue(playerGroupRef, (snapshot) => {
+  //       const final = false;
+  //       const players = snapshot.val();
+  //       for (let id in players) {
+  //         if (players[id].group_id === playerData.group_id) {
+  //           console.log("Group found for the current player.", players[id]);
+  //           return true;
+  //         }
+  //       }
+
+  //       if (!final) {
+  //         console.log("Group not found for the current player.");
+  //       }
+  //     });
+
+  //     return false;
+  //   } catch (error) {
+  //     console.error("Error checking user groups:", error);
+  //   }
+  // };
+
+  const userHasAnyGroup1 = async (userId) => {
+    try {
+      const db = getDatabase();
+      const playersRef = ref(db, "players/");
+      // Search the player with the column "user_id" equal to the current user id
+      onValue(playersRef, (snapshot) => {
+        const players = snapshot.val();
+        for (let id in players) {
+          if (players[id].user_id.includes(userId)) {
+            console.log("Player found for the current user.");
+            return true;
+          }
+        }
+        console.log("Player not found for the current user.");
+        return false;
+      });
+
+      // const playerGroupRef = ref(db, "players/");
+      // Search the players with the column "group_id" equal to the current group id
+      onValue(playersRef, (snapshot) => {
+        const players = snapshot.val();
+        for (let id in players) {
+          if (players[id].group_id === playerData.group_id) {
+            console.log("Group found for the current player.");
+            return true;
+          }
+        }
+        console.log("Group not found for the current player.");
+        return false;
+      });
+    } catch (error) {
+      console.error("Error checking user groups:", error);
+      return false; // Returns false in case of an error
+    }
+  };
+
+  const userHasAnyGroup = async (userId) => {
+    try {
+      const db = getDatabase();
+      const playersRef = ref(db, "players/");
+
+      return new Promise((resolve, reject) => {
+        let result = false;
+        let final = false;
+
+        onValue(playersRef, (snapshot) => {
+          const players = snapshot.val();
+          for (let id in players) {
+            if (players[id].user_id.includes(userId)) {
+              console.log("Player found for the current user.", players[id]);
+              const playerData = players[id];
+
+              const playerGroupRef = ref(db, "players/");
+
+              onValue(playerGroupRef, (snapshot) => {
+                const players = snapshot.val();
+                for (let id in players) {
+                  if (players[id].group_id === playerData.group_id) {
+                    console.log(
+                      "Group found for the current player.",
+                      players[id]
+                    );
+                    final = true;
+                  }
+                }
+
+                if (!final) {
+                  console.log("Group not found for the current player.");
+                }
+                result = false;
+
+                resolve(result);
+              });
+            }
+          }
+
+          if (!result) {
+            console.log("Player not found for the current user.");
+            resolve(result);
+          }
+        });
+      });
+    } catch (error) {
+      console.error("Error checking user groups:", error);
+      return false; // Returns false in case of an error
+    }
+  };
+
+  // if (!hasGroups) {
+  //   return (
+  //     <View style={styles.container}>
+  //       <AppBar title="Rachão" subtitle={"Encontre ou crie um grupo"} />
+  //       <View style={styles.card}>
+  //         <Text style={styles.header}>Você não está em nenhum grupo.</Text>
+  //         <Text style={styles.subtitle}>
+  //           Para participar de um rachão, você precisa estar em um grupo.
+  //         </Text>
+
+  //         <TouchableOpacity
+  //           style={(styles.button, styles.buttonAdicionar)}
+  //           onPress={() => navigation.navigate("AddOrFindGroupScreen")}
+  //         >
+  //           <Text style={styles.buttonText}>Encontrar ou criar grupo</Text>
+  //         </TouchableOpacity>
+  //       </View>
+  //     </View>
+  //   );
+  // }
+
   return (
     <View style={styles.container}>
       <AppBar
         title="Rachão"
         subtitle={
-          nextRachao
+          false
             ? `    Próximo rachão ${nextRachao.date} - ${nextRachao.time}`
             : "Sem rachões agendados"
         }
@@ -396,7 +552,11 @@ const RachaoScreen = ({ navigation }) => {
         </>
       ) : (
         <TouchableOpacity
-          style={[styles.button, styles.buttonAdicionar]}
+          style={[
+            styles.button,
+            styles.buttonAdicionar,
+            styles.buttonAddRachao,
+          ]}
           onPress={handleAddRachao}
         >
           <Text style={styles.buttonText}>ADICIONAR RACHÃO</Text>
@@ -455,6 +615,15 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 8,
     alignItems: "center",
+  },
+  buttonAddRachao: {
+    backgroundColor: "#da733c",
+    padding: 15,
+    borderRadius: 8,
+    alignItems: "center",
+    marginVertical: 20,
+    height: 25,
+    maxHeight: 50,
   },
   buttonSortear: {
     backgroundColor: "#da733c",

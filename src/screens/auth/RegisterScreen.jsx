@@ -1,7 +1,11 @@
 import React, { useState } from "react";
 import { View, StyleSheet } from "react-native";
 import { TextInput, Button, Text } from "@react-native-material/core";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+import { getDatabase, push, ref, set } from "firebase/database";
+import { auth } from "../../services/firebaseConfig";
+import User from "../../models/User";
+import Player from "../../models/Player";
 
 const RegisterScreen = ({ navigation }) => {
   const [fullName, setFullName] = useState("");
@@ -11,16 +15,49 @@ const RegisterScreen = ({ navigation }) => {
 
   const handleRegister = async () => {
     try {
-      // Salvar as informações de cadastro localmente no AsyncStorage
-      await AsyncStorage.setItem("fullName", fullName);
-      await AsyncStorage.setItem("nickname", nickname);
-      await AsyncStorage.setItem("email", email);
-      await AsyncStorage.setItem("password", password);
+      // Criar um novo usuário no Firebase Authentication
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
+      // Criar um novo usuário no Firebase Realtime Database
+      const userId = userCredential.user.uid;
+      const database = getDatabase();
+      set(ref(database, `users/${userId}`), {
+        fullName,
+        nickname,
+        email,
+        user_id: userId,
+      });
+
+      // Push the new player to the "players" table
+      const newPlayerRef = push(ref(database, "players"));
+      const playerId = newPlayerRef.key;
+
+      const newPlayer = {
+        name: fullName,
+        points: 0,
+        assists: 0,
+        rebounds: 0,
+        blocks: 0,
+        steals: 0,
+        match_id: [""],
+        user_id: [userId],
+        team_id: [""],
+        group_id: [""],
+        player_id: playerId,
+      };
+
+      //Set the player id to the new player
+      await set(ref(database, `players/${playerId}`), newPlayer);
 
       alert("Cadastro realizado com sucesso!");
-      navigation.navigate("Login"); // Redireciona para a tela de login após o cadastro.
+      navigation.navigate("Login");
     } catch (error) {
       console.error("Erro ao cadastrar: ", error);
+      alert("Erro ao cadastrar. Tente novamente.");
     }
   };
 
@@ -65,7 +102,6 @@ const styles = StyleSheet.create({
     padding: 20,
     alignItems: "center",
     justifyContent: "center",
-
     backgroundColor: "#FFAD80",
   },
   input: {

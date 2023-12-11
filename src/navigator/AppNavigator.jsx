@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { NavigationContainer, useNavigation } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
@@ -16,6 +16,11 @@ import RankingScreen from "../screens/ranking/RankingScreen";
 import AjustesScreen from "../screens/ajustes/AjustesScreen";
 import SortTeamsScreen from "../screens/rachao/SortTeamsScreen";
 import AliveMatchupScreen from "../screens/rachao/AliveMatchupScreen";
+import AddOrFindGroupScreen from "../screens/grupos/AddOrFindGroupScreen";
+import CreateGroupScreen from "../screens/grupos/CreateGroupScreen";
+import FindGroupScreen from "../screens/grupos/FindGroupScreen";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "../services/firebaseConfig";
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -81,7 +86,21 @@ const MainTabs = () => (
   </Tab.Navigator>
 );
 
-const AppNavigator = (isAuthenticated) => {
+const AppNavigator = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setIsAuthenticated(true);
+      } else {
+        setIsAuthenticated(false);
+      }
+    });
+
+    // Cleanup function to unsubscribe when the component is unmounted
+    return () => unsubscribe();
+  }, []);
+
   return (
     <NavigationContainer>
       <Stack.Navigator
@@ -122,6 +141,21 @@ const AppNavigator = (isAuthenticated) => {
           name="AliveMatchup"
           component={AliveMatchupScreen}
           options={{ title: "Ao Vivo", headerShown: false }}
+        />
+        <Stack.Screen
+          name="AddOrFindGroupScreen"
+          component={AddOrFindGroupScreen}
+          options={{ title: "Grupos", headerShown: false }}
+        />
+        <Stack.Screen
+          name="CreateGroupScreen"
+          component={CreateGroupScreen}
+          options={{ title: "Criar Grupo", headerShown: false }}
+        />
+        <Stack.Screen
+          name="FindGroupScreen"
+          component={FindGroupScreen}
+          options={{ title: "Encontrar Grupo", headerShown: false }}
         />
       </Stack.Navigator>
     </NavigationContainer>
